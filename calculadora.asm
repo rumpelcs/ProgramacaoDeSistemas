@@ -1,491 +1,159 @@
 section .data
+    msg_num1    db "Digite o primeiro numero (0-9): ", 0
+    len_num1    equ $ - msg_num1
 
-    menu db 10
-         db "==========================", 10
-         db "       CALCULADORA", 10
-         db "==========================", 10
-         db "1 - Soma", 10
-         db "2 - Subtracao", 10
-         db "3 - Multiplicacao", 10
-         db "4 - Divisao", 10
-         db "0 - Sair", 10
-         db "Escolha: "
+    msg_num2    db "Digite o segundo numero (0-9): ", 0
+    len_num2    equ $ - msg_num2
 
-    menu_len equ $ - menu
+    msg_menu    db 10, "Escolha a operacao:", 10
+                db "1. Soma (+)", 10
+                db "2. Subtracao (-)", 10
+                db "3. Multiplicacao (*)", 10
+                db "4. Divisao (/)", 10
+                db "Opcao: ", 0
+    len_menu    equ $ - msg_menu
 
+    msg_res     db 10, "Resultado: ", 0
+    len_res     equ $ - msg_res
 
-    msg1 db "Digite o primeiro numero: "
-    msg1_len equ $ - msg1
+    msg_erro_div db 10, "Erro: Divisao por zero!", 10, 0
+    len_erro_div equ $ - msg_erro_div
 
-    msg2 db "Digite o segundo numero: "
-    msg2_len equ $ - msg2
+    msg_invalida db 10, "Opcao invalida!", 10, 0
+    len_invalida equ $ - msg_invalida
 
-    msg_resultado db "Resultado: "
-    msg_resultado_len equ $ - msg_resultado
-
-    msg_zero db "Erro: divisao por zero!", 10
-    msg_zero_len equ $ - msg_zero
-
-    msg_invalido db "Opcao invalida!", 10
-    msg_invalido_len equ $ - msg_invalido
-
-    quebra db 10
-
+    nova_linha  db 10, 0
 
 section .bss
-
-    escolha resb 2
-
-    numero1 resb 32
-    numero2 resb 32
-
-    resultado resb 32
-
+    num1        resb 2
+    num2        resb 2
+    opcao       resb 2
+    resultado   resb 4
 
 section .text
+    global _start
 
-    global _main
-
-
-_main:
-
-menu_principal:
-
-    ; Mostrar menu
-
+_start:
+    ; --- Pedir Primeiro Número ---
     mov eax, 4
     mov ebx, 1
-    mov ecx, menu
-    mov edx, menu_len
+    mov ecx, msg_num1
+    mov edx, len_num1
     int 0x80
-
-    ; Ler escolha
 
     mov eax, 3
     mov ebx, 0
-    mov ecx, escolha
+    mov ecx, num1
+    mov edx, 2          ; Lê o caractere e a quebra de linha
+    int 0x80
+
+    ; --- Pedir Segundo Número ---
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, msg_num2
+    mov edx, len_num2
+    int 0x80
+
+    mov eax, 3
+    mov ebx, 0
+    mov ecx, num2
     mov edx, 2
     int 0x80
 
-    ; Verificar escolha
-
-    mov al, [escolha]
-
-    cmp al, '0'
-    je sair
-
-    cmp al, '1'
-    je soma
-
-    cmp al, '2'
-    je subtracao
-
-    cmp al, '3'
-    je multiplicacao
-
-    cmp al, '4'
-    je divisao
-
-    jmp opcao_invalida
-
-soma:
-
-    call ler_numeros
-
-    ; numero1 + numero2
-
-    mov eax, [numero1]
-    add eax, [numero2]
-
-    ; Guardar resultado
-
-    mov [resultado], eax
-
-    jmp mostrar_resultado
-
-subtracao:
-
-    call ler_numeros
-
-    ; numero1 - numero2
-
-    mov eax, [numero1]
-    sub eax, [numero2]
-
-    ; Guardar resultado
-
-    mov [resultado], eax
-
-    jmp mostrar_resultado
-
-multiplicacao:
-
-    call ler_numeros
-
-    ; numero1 * numero2
-
-    mov eax, [numero1]
-    imul eax, [numero2]
-
-    ; Guardar resultado
-
-    mov [resultado], eax
-
-    jmp mostrar_resultado
-
-divisao:
-
-    call ler_numeros
-
-    ; Verificar se numero2 == 0
-
-    cmp dword [numero2], 0
-    je divisao_zero
-
-    ; EAX = numero1
-
-    mov eax, [numero1]
-
-    ; Preparar EDX:EAX para divisao
-
-    cdq
-
-    ; EAX / numero2
-
-    idiv dword [numero2]
-
-    ; Guardar quociente
-
-    mov [resultado], eax
-
-    jmp mostrar_resultado
-
-ler_numeros:
-
+    ; --- Exibir Menu ---
     mov eax, 4
     mov ebx, 1
-    mov ecx, msg1
-    mov edx, msg1_len
+    mov ecx, msg_menu
+    mov edx, len_menu
     int 0x80
-
-
-    ; Ler texto
 
     mov eax, 3
     mov ebx, 0
-    mov ecx, numero1
-    mov edx, 32
+    mov ecx, opcao
+    mov edx, 2
     int 0x80
 
-
-    ; Converter ASCII para inteiro
-
-    mov esi, numero1
-
-    call ascii_para_inteiro
-
-    ; Resultado da conversao fica em EAX
-
-    mov [numero1], eax
-
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, msg2
-    mov edx, msg2_len
-    int 0x80
-
-    ; Ler texto
-
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, numero2
-    mov edx, 32
-    int 0x80
-
-
-    ; Converter ASCII para inteiro
-
-    mov esi, numero2
-
-    call ascii_para_inteiro
-
-    ; Guardar numero
-
-    mov [numero2], eax
-
-    ret
-
-
-
-; ==========================================================
-; ASCII PARA INTEIRO
-;
-; Entrada:
-; ESI = endereco da string
-;
-; Saida:
-; EAX = numero inteiro
-;
-; Aceita:
-;
-; 123
-; -123
-; 0
-; ==========================================================
-
-ascii_para_inteiro:
-
-    xor eax, eax        ; resultado = 0
-
-    xor ebx, ebx        ; EBX = 0
-    xor ecx, ecx
-
-    ; Verificar sinal negativo
-
-    mov bl, [esi]
-
-    cmp bl, '-'
-    jne converter_digitos
-
-    ; Se for negativo
-
-    inc esi
-
-    mov ecx, 1          ; ECX = sinal negativo
-
-
-converter_digitos:
-
-    mov bl, [esi]
-
-    ; Verificar ENTER
-
-    cmp bl, 10
-    je conversao_final
-
-    ; Verificar fim
-
-    cmp bl, 0
-    je conversao_final
-
-    ; Converter ASCII para numero
-
+    ; --- Converter ASCII para Inteiro ---
+    mov al, [num1]
+    sub al, '0'         ; Converte caractere ASCII ('0'-'9') para valor numérico
+    mov bl, [num2]
     sub bl, '0'
 
-    ; EAX = EAX * 10
+    ; --- Selecionar Operação ---
+    mov cl, [opcao]
+    cmp cl, '1'
+    je  op_soma
+    cmp cl, '2'
+    je  op_sub
+    cmp cl, '3'
+    je  op_mult
+    cmp cl, '4'
+    je  op_div
 
-    imul eax, eax, 10
-
-    ; EAX = EAX + digito
-
-    add eax, ebx
-
-    ; Proximo caractere
-
-    inc esi
-
-    jmp converter_digitos
-
-
-
-conversao_final:
-
-    ; Verificar se era negativo
-
-    cmp ecx, 1
-    jne conversao_positiva
-
-    neg eax
-
-
-conversao_positiva:
-
-    ret
-
-mostrar_resultado:
-
-    ; Mostrar "Resultado: "
-
+    ; Se a opção não for de 1 a 4:
     mov eax, 4
     mov ebx, 1
-    mov ecx, msg_resultado
-    mov edx, msg_resultado_len
+    mov ecx, msg_invalida
+    mov edx, len_invalida
+    int 0x80
+    jmp fim
+
+op_soma:
+    add al, bl
+    jmp exibir_resultado
+
+op_sub:
+    sub al, bl
+    jmp exibir_resultado
+
+op_mult:
+    mul bl              ; Multiplica AL por BL (resultado vai para AX)
+    jmp exibir_resultado
+
+op_div:
+    cmp bl, 0           ; Verifica se o divisor é zero
+    je  erro_divisao
+
+    mov ah, 0           ; Limpa AH para a divisão de 8 bits
+    div bl              ; Divide AX por BL (quociente em AL, resto em AH)
+    jmp exibir_resultado
+
+erro_divisao:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, msg_erro_div
+    mov edx, len_erro_div
+    int 0x80
+    jmp fim
+
+exibir_resultado:
+    ; --- Converter Inteiro para ASCII ---
+    add al, '0'
+    mov [resultado], al
+
+    ; Exibe a mensagem "Resultado: "
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, msg_res
+    mov edx, len_res
     int 0x80
 
-
-    ; Converter inteiro para ASCII
-
-    mov eax, [resultado]
-
-    mov edi, resultado
-
-    call inteiro_para_ascii
-
-
-    ; EAX = tamanho da string
-
-    mov edx, eax
-
-    ; ECX = endereco da string
-
+    ; Exibe o caractere do resultado
+    mov eax, 4
+    mov ebx, 1
     mov ecx, resultado
-
-
-    ; Mostrar resultado
-
-    mov eax, 4
-    mov ebx, 1
-    int 0x80
-
-
-    ; Quebra de linha
-
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, quebra
     mov edx, 1
     int 0x80
 
-
-    ; Voltar ao menu
-
-    jmp menu_principal
-
-
-
-; ==========================================================
-; INTEIRO PARA ASCII
-;
-; Entrada:
-; EAX = numero
-; EDI = endereco do buffer
-;
-; Saida:
-; EAX = tamanho da string
-; ==========================================================
-
-inteiro_para_ascii:
-
-    ; Salvar registradores
-
-    push ebx
-    push ecx
-    push edx
-    push esi
-
-
-    ; Verificar se o numero e negativo
-
-    cmp eax, 0
-    jge numero_positivo
-
-
-    ; Colocar '-'
-
-    mov byte [edi], '-'
-
-    inc edi
-
-    ; Transformar em positivo
-
-    neg eax
-
-
-numero_positivo:
-
-    ; Caso especial: numero = 0
-
-    cmp eax, 0
-    jne converter_numero
-
-    mov byte [edi], '0'
-
-    mov eax, 1
-
-    jmp fim_inteiro_ascii
-
-converter_numero:
-
-    xor ecx, ecx
-
-    mov ebx, 10
-
-dividir:
-
-    xor edx, edx
-
-    div ebx
-
-    ; EDX possui o resto
-
-    add dl, '0'
-
-    push edx
-
-    inc ecx
-
-    cmp eax, 0
-
-    jne dividir
-
-    mov esi, ecx
-
-
-escrever:
-
-    pop edx
-
-    mov [edi], dl
-
-    inc edi
-
-    loop escrever
-
-
-    ; EAX = quantidade de caracteres
-
-    mov eax, esi
-
-
-fim_inteiro_ascii:
-
-    ; Verificar se o numero original era negativo
-    ; Se havia '-' precisamos adicionar 1 ao tamanho
-
-    ; Neste ponto fica mais simples calcular pelo
-    ; endereco final - inicio do buffer.
-
-    ; Restaurar registradores
-
-    pop esi
-    pop edx
-    pop ecx
-    pop ebx
-
-    ret
-
-opcao_invalida:
-
+    ; Exibe uma nova linha
     mov eax, 4
     mov ebx, 1
-    mov ecx, msg_invalido
-    mov edx, msg_invalido_len
+    mov ecx, nova_linha
+    mov edx, 1
     int 0x80
 
-    jmp menu_principal
-
-divisao_zero:
-
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, msg_zero
-    mov edx, msg_zero_len
-    int 0x80
-
-    jmp menu_principal
-
-sair:
-
-    mov eax, 1
-    mov ebx, 0
+fim:
+    ; --- Finalizar o Programa ---
+    mov eax, 1          ; Syscall exit
+    xor ebx, ebx        ; Código de retorno 0
     int 0x80
