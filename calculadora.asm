@@ -1,9 +1,5 @@
 section .data
 
-    ; ==========================
-    ; MENU
-    ; ==========================
-
     menu db 10
          db "==========================", 10
          db "       CALCULADORA", 10
@@ -53,10 +49,6 @@ section .text
 
 _main:
 
-; ==========================================================
-; MENU PRINCIPAL
-; ==========================================================
-
 menu_principal:
 
     ; Mostrar menu
@@ -67,7 +59,6 @@ menu_principal:
     mov edx, menu_len
     int 0x80
 
-
     ; Ler escolha
 
     mov eax, 3
@@ -75,7 +66,6 @@ menu_principal:
     mov ecx, escolha
     mov edx, 2
     int 0x80
-
 
     ; Verificar escolha
 
@@ -98,12 +88,6 @@ menu_principal:
 
     jmp opcao_invalida
 
-
-
-; ==========================================================
-; SOMA
-; ==========================================================
-
 soma:
 
     call ler_numeros
@@ -118,12 +102,6 @@ soma:
     mov [resultado], eax
 
     jmp mostrar_resultado
-
-
-
-; ==========================================================
-; SUBTRACAO
-; ==========================================================
 
 subtracao:
 
@@ -140,12 +118,6 @@ subtracao:
 
     jmp mostrar_resultado
 
-
-
-; ==========================================================
-; MULTIPLICACAO
-; ==========================================================
-
 multiplicacao:
 
     call ler_numeros
@@ -161,12 +133,6 @@ multiplicacao:
 
     jmp mostrar_resultado
 
-
-
-; ==========================================================
-; DIVISAO
-; ==========================================================
-
 divisao:
 
     call ler_numeros
@@ -175,7 +141,6 @@ divisao:
 
     cmp dword [numero2], 0
     je divisao_zero
-
 
     ; EAX = numero1
 
@@ -195,17 +160,7 @@ divisao:
 
     jmp mostrar_resultado
 
-
-
-; ==========================================================
-; LER OS DOIS NUMEROS
-; ==========================================================
-
 ler_numeros:
-
-    ; ------------------------------------------------------
-    ; PRIMEIRO NUMERO
-    ; ------------------------------------------------------
 
     mov eax, 4
     mov ebx, 1
@@ -233,17 +188,11 @@ ler_numeros:
 
     mov [numero1], eax
 
-
-    ; ------------------------------------------------------
-    ; SEGUNDO NUMERO
-    ; ------------------------------------------------------
-
     mov eax, 4
     mov ebx, 1
     mov ecx, msg2
     mov edx, msg2_len
     int 0x80
-
 
     ; Ler texto
 
@@ -353,12 +302,6 @@ conversao_positiva:
 
     ret
 
-
-
-; ==========================================================
-; MOSTRAR RESULTADO
-; ==========================================================
-
 mostrar_resultado:
 
     ; Mostrar "Resultado: "
@@ -461,18 +404,11 @@ numero_positivo:
 
     jmp fim_inteiro_ascii
 
-
-
 converter_numero:
-
-    ; ------------------------------------------------------
-    ; Primeiro vamos colocar os digitos ao contrario
-    ; ------------------------------------------------------
 
     xor ecx, ecx
 
     mov ebx, 10
-
 
 dividir:
 
@@ -491,11 +427,6 @@ dividir:
     cmp eax, 0
 
     jne dividir
-
-
-    ; ------------------------------------------------------
-    ; Agora retiramos os digitos da pilha
-    ; ------------------------------------------------------
 
     mov esi, ecx
 
@@ -533,12 +464,6 @@ fim_inteiro_ascii:
 
     ret
 
-
-
-; ==========================================================
-; OPCAO INVALIDA
-; ==========================================================
-
 opcao_invalida:
 
     mov eax, 4
@@ -549,12 +474,6 @@ opcao_invalida:
 
     jmp menu_principal
 
-
-
-; ==========================================================
-; DIVISAO POR ZERO
-; ==========================================================
-
 divisao_zero:
 
     mov eax, 4
@@ -564,12 +483,6 @@ divisao_zero:
     int 0x80
 
     jmp menu_principal
-
-
-
-; ==========================================================
-; SAIR
-; ==========================================================
 
 sair:
 
